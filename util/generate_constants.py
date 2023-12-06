@@ -138,6 +138,77 @@ MI                  [X,H=0.56,L=0.22,N=0]
 MA                  [X,H=0.56,L=0.22,N=0]
 """
 
+METRICS_4 = """
+Base                Attack Vector, AV                    [N,A,L,P]                 Yes
+                    Attack Complexity, AC                [L,H]                     Yes
+                    Attack Requirements, AT              [N,P]                     Yes
+                    Privileges Required, PR              [N,L,H]                   Yes
+                    User Interaction, UI                 [N,P,A]                   Yes
+                    Confidentiality, VC                  [H,L,N]                   Yes
+                    Integrity, VI                        [H,L,N]                   Yes
+                    Availability, VA                     [H,L,N]                   Yes
+                    Confidentiality, SC                  [H,L,N]                   Yes
+                    Integrity, SI                        [H,L,N]                   Yes
+                    Availability, SA                     [H,L,N]                   Yes
+Threat              Exploit Maturity, E                  [X,A,P,U]                 No
+Environmental       Attack Vector, MAV                   [X,N,A,L,P]               No
+                    Attack Complexity, MAC               [X,L,H]                   No
+                    Attack Requirements, MAT             [X,N,P]                   No
+                    Privileges Required, MPR             [X,N,L,H]                 No
+                    User Interaction, MUI                [X,N,P,A]                 No
+                    Confidentiality, MVC                 [X,H,L,N]                 No
+                    Integrity, MVI                       [X,H,L,N]                 No
+                    Availability, MVA                    [X,H,L,N]                 No
+                    Confidentiality, MSC                 [X,H,L,N]                 No
+                    Integrity, MSI                       [X,S,H,L,N]               No
+                    Availability, MSA                    [X,S,H,L,N]               No
+                    Confidentiality Req., CR             [X,H,M,L]                 No
+                    Integrity Req., IR                   [X,H,M,L]                 No
+                    Availability Req., AR                [X,H,M,L]                 No
+Supplemental        Safety, S                            [X,N,P]                   No
+                    Automatable, AU                      [X,N,Y]                   No
+                    Recovery, R                          [X,A,U,I]                 No
+                    Value Density, V                     [X,D,C]                   No
+                    Vulnerability Response Effort, RE    [X,L,M,H]                 No
+                    Provider Urgency, U                  [X,Clear,Green,Amber,Red] No
+"""
+
+NAMES_4 = """
+AV                  [Network,Adjacent,Local,Physical]
+AC                  [Low,High]
+AT                  [None,Present]
+PR                  [None,Low,High]
+UI                  [None,Passive,Active]
+VC                  [High,Low,None]
+VI                  [High,Low,None]
+VA                  [High,Low,None]
+SC                  [High,Low,None]
+SI                  [High,Low,None]
+SA                  [High,Low,None]
+E                   [Not Defined,Attacked,POC,Unreported]
+MAV                 [Not Defined,Network,Adjacent,Local,Physical]
+MAC                 [Not Defined,Low,High]
+MAT                 [Not Defined,None,Present]
+MPR                 [Not Defined,None,Low,High]
+MUI                 [Not Defined,None,Passive,Active]
+MVC                 [Not Defined,High,Low,None]
+MVI                 [Not Defined,High,Low,None]
+MVA                 [Not Defined,High,Low,None]
+MSC                 [Not Defined,High,Low,None]
+MSI                 [Not Defined,High,Low,None]
+MSA                 [Not Defined,High,Low,None]
+CR                  [Not Defined,High,Medium,Low]
+IR                  [Not Defined,High,Medium,Low]
+AR                  [Not Defined,High,Medium,Low]
+S                   [Not Defined,Negligible,Present]
+AU                  [Not Defined,No,Yes]
+R                   [Not Defined,Automatic,User,Irrecoverable]
+V                   [Not Defined,Diffuse,Concentrated]
+RE                  [Not Defined,Low,Moderate,High]
+U                   [Not Defined,Clear,Green,Amber,Red]
+"""
+
+
 METRICS = (METRICS_2, METRICS_3)
 NAMES = (NAMES_2, NAMES_3)
 VALUES = (VALUES_2, VALUES_3)
@@ -153,6 +224,7 @@ def build_constants(metrics, names, values):
     metrics_abbreviations = OrderedDict()
     metrics_mandatory = []
     metrics_values = OrderedDict()
+    metrics_value_names = OrderedDict()
 
     # Parse name, abbreviation, and mandatory
     for line in metrics.strip().split("\n"):
@@ -161,26 +233,28 @@ def build_constants(metrics, names, values):
             metrics_abbreviations[r.group(2)] = r.group(1)
             if r.group(4) == "Yes":
                 metrics_mandatory.append(r.group(2))
+            possible_values = r.group(3).split(",")
+            metrics_value_names[r.group(2)] = OrderedDict([(value_short, None) for value_short in possible_values])
         else:
             raise RuntimeError('Malformed constant line "{0}"'.format(line))
 
-    # Parse name and value numbers for abbreviated values
-    for line in values.strip().split("\n"):
-        r = re.search(r"(\S+)\s+\[(.*)\]", line)
-        if r:
-            values = OrderedDict()
-            for one_value in r.group(2).split(","):
-                if "=" in one_value:
-                    key, value = one_value.split("=")
-                    values[key] = Decimal(value)
-                else:
-                    values[one_value] = None
-            metrics_values[r.group(1)] = values
-        else:
-            raise RuntimeError('Malformed constant line "{0}"'.format(line))
+    if values:
+        # Parse name and value numbers for abbreviated values
+        for line in values.strip().split("\n"):
+            r = re.search(r"(\S+)\s+\[(.*)\]", line)
+            if r:
+                values = OrderedDict()
+                for one_value in r.group(2).split(","):
+                    if "=" in one_value:
+                        key, value = one_value.split("=")
+                        values[key] = Decimal(value)
+                    else:
+                        values[one_value] = None
+                metrics_values[r.group(1)] = values
+            else:
+                raise RuntimeError('Malformed constant line "{0}"'.format(line))
 
     # Parse full names for abbreviated values
-    metrics_value_names = copy.deepcopy(metrics_values)
     for line in names.strip().split("\n"):
         r = re.search(r"(\S+)\s+\[(.*)\]", line)
         if r:
@@ -189,11 +263,13 @@ def build_constants(metrics, names, values):
             keys = list(metrics_value_names[metric].keys())
             for i, name in enumerate(names):
                 metrics_value_names[metric][keys[i]] = name
+        # for key in metrics_abbreviations.keys():
+        #     print(key)
 
     return metrics_abbreviations, metrics_mandatory, metrics_values, metrics_value_names
 
 
-def print_constants(metrics, names, values):
+def print_constants(metrics, names, values=None):
     """
     Prints the constants build by 'build_constants' function formatted for Python code.
     """
@@ -213,42 +289,46 @@ def print_constants(metrics, names, values):
     print()
     print("METRICS_MANDATORY =", repr(metrics_mandatory))
 
-    print()
-    header = "METRICS_VALUES = {"
-    MV = [header]
-    for i, key in enumerate(metrics_values):
-        values = []
-        for possible_value in metrics_values[key]:
-            if metrics_values[key][possible_value] is None:
-                one_value = "None"
+    if values:
+        print()
+        header = "METRICS_VALUES = {"
+        MV = [header]
+        for i, key in enumerate(metrics_values):
+            values = []
+            for possible_value in metrics_values[key]:
+                if metrics_values[key][possible_value] is None:
+                    one_value = "None"
+                else:
+                    one_value = "D('{0}')".format(metrics_values[key][possible_value])
+                values.append("'{0}': {1}".format(possible_value, one_value))
+            values = ", ".join(values)
+            if i == 0:
+                MV[0] += "'{0}': {{{1}}},".format(key, values)
             else:
-                one_value = "D('{0}')".format(metrics_values[key][possible_value])
-            values.append("'{0}': {1}".format(possible_value, one_value))
-        values = ", ".join(values)
-        if i == 0:
-            MV[0] += "'{0}': {{{1}}},".format(key, values)
-        else:
-            MV.append(" " * len(header) + "'{0}': {{{1}}},".format(key, values))
-    MV.append(" " * len(header) + "}")
-    print("\n".join(MV))
+                MV.append(" " * len(header) + "'{0}': {{{1}}},".format(key, values))
+        MV.append(" " * len(header) + "}")
+        print("\n".join(MV))
 
-    print()
-    header = "METRICS_VALUE_NAMES = OrderedDict(["
-    MVN = [header]
-    for i, key in enumerate(metrics_value_names):
-        values_dict_string = str(metrics_value_names[key]).replace(
-            "), ", "),\n" + " " * (len(header) + len(key) + 18)
-        )
-        if i == 0:
-            MVN[0] += "('{0}', {1}),".format(key, values_dict_string)
-        else:
-            MVN.append(" " * len(header) + "('{0}', {1}),".format(key, values_dict_string))
-    MVN.append(" " * len(header) + "])")
-    print("\n".join(MVN))
+    if metrics_value_names:
+        print()
+        header = "METRICS_VALUE_NAMES = OrderedDict(["
+        MVN = [header]
+        for i, key in enumerate(metrics_value_names):
+            values_dict_string = str(metrics_value_names[key]).replace(
+                "), ", "),\n" + " " * (len(header) + len(key) + 18)
+            )
+            if i == 0:
+                MVN[0] += "('{0}', {1}),".format(key, values_dict_string)
+            else:
+                MVN.append(" " * len(header) + "('{0}', {1}),".format(key, values_dict_string))
+        MVN.append(" " * len(header) + "])")
+        print("\n".join(MVN))
 
 
 if __name__ == "__main__":
-    print("# CVSS2")
-    print_constants(METRICS_2, NAMES_2, VALUES_2)
-    print("\n\n# CVSS3")
-    print_constants(METRICS_3, NAMES_3, VALUES_3)
+    # print("# CVSS2")
+    # print_constants(METRICS_2, NAMES_2, VALUES_2)
+    # print("\n\n# CVSS3")
+    # print_constants(METRICS_3, NAMES_3, VALUES_3)
+    print("\n\n# CVSS4")
+    print_constants(METRICS_4, NAMES_4)
