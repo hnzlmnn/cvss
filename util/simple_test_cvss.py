@@ -48,3 +48,6 @@ print(expected)
 print(cvss.CVSS4(vector_string).score())
 print(cvss.CVSS4(vector_string).severity())
 print(cvss.CVSS4(vector_string).scores())
+
+test = cvss.CVSS4('CVSS:4.0/AV:N/AC:L/AT:P/PR:H/UI:A/VC:L/VI:L/VA:L/SC:H/SI:L/SA:N')
+print(test.score())

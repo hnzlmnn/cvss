@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 import copy
 import math
 from decimal import ROUND_CEILING
-from decimal import Decimal as D
+from decimal import Decimal as D, ROUND_HALF_UP
 
 from .constants4 import (
     METRICS_ABBREVIATIONS,
@@ -148,7 +148,10 @@ class CVSS4(object):
         return result
 
     def metric(self, metric):
-        selected = self.metrics[metric]
+        try:
+            selected = self.metrics[metric]
+        except KeyError:
+            selected = "X"
 
         # If E=X it will default to the worst case i.e. E=A
         if metric == "E" and selected == "X":
@@ -461,7 +464,8 @@ class CVSS4(object):
         severity_distances = self.severity_distances(macro_vector)
         mean_distance = self.mean_distance(value, macro_vector, lower_scores, severity_distances)
 
-        return round(max(0.0, min(value - mean_distance, 10.0)), 1)
+        result = max(D(0.0), min(D(value - mean_distance), D(10.0)))
+        return float(result.quantize(D('0.1'), ROUND_HALF_UP))
 
     def scores(self):
         scores = OrderedDict()

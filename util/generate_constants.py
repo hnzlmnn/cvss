@@ -151,7 +151,10 @@ Base                Attack Vector, AV                    [N,A,L,P]              
                     Integrity, SI                        [H,L,N]                   Yes
                     Availability, SA                     [H,L,N]                   Yes
 Threat              Exploit Maturity, E                  [X,A,P,U]                 No
-Environmental       Attack Vector, MAV                   [X,N,A,L,P]               No
+Environmental       Confidentiality Req., CR             [X,H,M,L]                 No
+                    Integrity Req., IR                   [X,H,M,L]                 No
+                    Availability Req., AR                [X,H,M,L]                 No
+                    Attack Vector, MAV                   [X,N,A,L,P]               No
                     Attack Complexity, MAC               [X,L,H]                   No
                     Attack Requirements, MAT             [X,N,P]                   No
                     Privileges Required, MPR             [X,N,L,H]                 No
@@ -162,9 +165,6 @@ Environmental       Attack Vector, MAV                   [X,N,A,L,P]            
                     Confidentiality, MSC                 [X,H,L,N]                 No
                     Integrity, MSI                       [X,S,H,L,N]               No
                     Availability, MSA                    [X,S,H,L,N]               No
-                    Confidentiality Req., CR             [X,H,M,L]                 No
-                    Integrity Req., IR                   [X,H,M,L]                 No
-                    Availability Req., AR                [X,H,M,L]                 No
 Supplemental        Safety, S                            [X,N,P]                   No
                     Automatable, AU                      [X,N,Y]                   No
                     Recovery, R                          [X,A,U,I]                 No
@@ -186,6 +186,9 @@ SC                  [High,Low,None]
 SI                  [High,Low,None]
 SA                  [High,Low,None]
 E                   [Not Defined,Attacked,POC,Unreported]
+CR                  [Not Defined,High,Medium,Low]
+IR                  [Not Defined,High,Medium,Low]
+AR                  [Not Defined,High,Medium,Low]
 MAV                 [Not Defined,Network,Adjacent,Local,Physical]
 MAC                 [Not Defined,Low,High]
 MAT                 [Not Defined,None,Present]
@@ -197,9 +200,6 @@ MVA                 [Not Defined,High,Low,None]
 MSC                 [Not Defined,High,Low,None]
 MSI                 [Not Defined,High,Low,None]
 MSA                 [Not Defined,High,Low,None]
-CR                  [Not Defined,High,Medium,Low]
-IR                  [Not Defined,High,Medium,Low]
-AR                  [Not Defined,High,Medium,Low]
 S                   [Not Defined,Negligible,Present]
 AU                  [Not Defined,No,Yes]
 R                   [Not Defined,Automatic,User,Irrecoverable]
